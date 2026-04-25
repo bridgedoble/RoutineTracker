@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Daily Routines">
+<meta name="theme-color" content="#0f0f0f">
+<title>Daily Routines</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f0f;
+  --surface:#1c1c1c;
+  --surface2:#252525;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.13);
+  --text:#f0ede8;
+  --muted:#777;
+  --dim:#444;
+  --accent:#c9a96e;
+  --accent-dim:rgba(201,169,110,0.15);
+  --done:#6fcf97;
+  --done-bg:rgba(111,207,151,0.13);
+  --skip:#eb7070;
+  --skip-bg:rgba(235,112,112,0.11);
+  --na-bg:rgba(120,120,120,0.08);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;-webkit-font-smoothing:antialiased;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:500px;margin:0 auto}
+
+.header{padding:calc(var(--safe-top) + 16px) 20px 14px;background:var(--bg);flex-shrink:0;border-bottom:1px solid var(--border)}
+.brand{font-family:'DM Serif Display',serif;font-size:24px;color:var(--text);margin-bottom:14px}
+.brand em{color:var(--accent);font-style:italic}
+.tabs{display:flex;background:var(--surface);border-radius:10px;padding:3px;gap:3px}
+.tab{flex:1;padding:7px 0;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;border-radius:8px;cursor:pointer;transition:all 0.18s}
+.tab.active{background:var(--surface2);color:var(--text)}
+
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + var(--safe-bottom))}
+.view{display:none}
+.view.active{display:block}
+
+/* Tracker */
+.date-nav{display:flex;align-items:center;padding:14px 20px;gap:10px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--border)}
+.nav-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;flex-shrink:0;line-height:1}
+.nav-btn:active{background:var(--surface2)}
+.date-center{flex:1;text-align:center}
+.date-main{font-family:'DM Serif Display',serif;font-size:19px}
+.date-sub{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-top:2px}
+.today-chip{display:inline-block;font-size:10px;background:var(--accent-dim);color:var(--accent);padding:2px 7px;border-radius:20px;margin-left:6px;font-family:'DM Sans',sans-serif;vertical-align:middle;font-weight:500}
+
+.routine-list{padding:10px 16px;display:flex;flex-direction:column;gap:7px}
+.routine-row{display:flex;align-items:center;gap:12px;padding:13px 15px;background:var(--surface);border-radius:14px;border:1px solid var(--border);transition:all 0.2s}
+.routine-row.state-done{border-color:rgba(111,207,151,0.28);background:var(--done-bg)}
+.routine-row.state-skip{border-color:rgba(235,112,112,0.25);background:var(--skip-bg)}
+.routine-row.state-na{background:var(--na-bg)}
+.r-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:var(--surface2)}
+.r-name{flex:1;font-size:15px;color:var(--text)}
+.routine-row.state-na .r-name{color:var(--muted)}
+.status-select{-webkit-appearance:none;appearance:none;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:20px;border-radius:10px;padding:4px 8px;cursor:pointer;text-align:center;width:58px;height:42px;outline:none}
+.status-select:focus{border-color:var(--accent)}
+.routine-row.state-done .status-select{color:var(--done);border-color:rgba(111,207,151,0.4);background:rgba(111,207,151,0.1)}
+.routine-row.state-skip .status-select{color:var(--skip);border-color:rgba(235,112,112,0.4);background:rgba(235,112,112,0.1)}
+
+/* Dashboard period tabs */
+.period-bar{display:flex;gap:3px;padding:14px 16px 0;position:sticky;top:0;background:var(--bg);z-index:5}
+.period-tab{flex:1;padding:7px 0;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;border-radius:8px;cursor:pointer;transition:all 0.18s}
+.period-tab.active{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+
+.period-view{display:none;padding-top:14px}
+.period-view.active{display:block}
+.dash-section{padding:0 16px}
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:10px;font-weight:500}
+
+/* Summary cards */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px}
+.s-card{background:var(--surface);border-radius:13px;border:1px solid var(--border);padding:14px 10px;text-align:center}
+.s-num{font-family:'DM Serif Display',serif;font-size:26px}
+.s-num.green{color:var(--done)}
+.s-num.red{color:var(--skip)}
+.s-num.gold{color:var(--accent)}
+.s-lbl{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.3}
+
+/* Context note */
+.context-note{font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 13px;margin-bottom:16px;line-height:1.5}
+.context-note strong{color:var(--accent);font-weight:500}
+
+/* Insight cards */
+.insight-block{margin-bottom:16px;display:flex;flex-direction:column;gap:7px}
+.insight-card{border-radius:13px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px}
+.insight-card.lag{background:rgba(235,112,112,0.08);border:1px solid rgba(235,112,112,0.2)}
+.insight-card.strong{background:rgba(111,207,151,0.07);border:1px solid rgba(111,207,151,0.18)}
+.insight-card.neutral{background:var(--surface);border:1px solid var(--border)}
+.i-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.i-txt{font-size:13px;color:var(--text);line-height:1.55}
+.insight-card.lag .i-txt strong{color:var(--skip);font-weight:500}
+.insight-card.strong .i-txt strong{color:var(--done);font-weight:500}
+.insight-card.neutral .i-txt strong{color:var(--accent);font-weight:500}
+
+/* Horizontal bar chart */
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:18px}
+.chart-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.chart-row:last-child{margin-bottom:0}
+.chart-icon{font-size:14px;width:22px;text-align:center;flex-shrink:0}
+.chart-label{font-size:12px;color:var(--text);width:100px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chart-bar-wrap{flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative}
+.chart-bar{height:100%;border-radius:4px;transition:width 0.7s cubic-bezier(0.4,0,0.2,1)}
+.chart-pct{font-size:12px;font-weight:500;width:32px;text-align:right;flex-shrink:0}
+.chart-streak{font-size:10px;color:var(--accent);width:28px;text-align:right;flex-shrink:0}
+
+/* Week grid */
+.week-section{margin-bottom:16px}
+.day-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.day-lbl{text-align:center;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.w-cell{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);font-size:10px;font-weight:500}
+.w-cell.done{background:var(--done-bg);border-color:rgba(111,207,151,0.3);color:var(--done)}
+.w-cell.mid{background:rgba(201,169,110,0.12);border-color:rgba(201,169,110,0.3);color:var(--accent)}
+.w-cell.low{background:var(--skip-bg);border-color:rgba(235,112,112,0.25);color:var(--skip)}
+.w-cell.empty{background:transparent;color:var(--dim)}
+
+/* Month heatmap */
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+.m-cell{aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--border);line-height:1.2}
+.m-cell .m-date{font-size:9px;color:var(--muted);margin-bottom:1px}
+.m-cell .m-score{font-size:10px;font-weight:500}
+.m-cell.done{background:var(--done-bg);border-color:rgba(111,207,151,0.3)}
+.m-cell.done .m-score{color:var(--done)}
+.m-cell.mid{background:rgba(201,169,110,0.12);border-color:rgba(201,169,110,0.3)}
+.m-cell.mid .m-score{color:var(--accent)}
+.m-cell.low{background:var(--skip-bg);border-color:rgba(235,112,112,0.22)}
+.m-cell.low .m-score{color:var(--skip)}
+.m-cell.empty{background:transparent;border-color:transparent}
+.m-cell.future{background:transparent;border-color:var(--border)}
+.m-cell.future .m-date,.m-cell.unlogged .m-date{color:var(--dim)}
+
+.spacer{height:14px}
+.spacer-sm{height:10px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="brand">Daily <em>Routines</em></div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchMain('tracker')">Tracker</button>
+      <button class="tab" onclick="switchMain('dashboard')">Dashboard</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- TRACKER -->
+    <div class="view active" id="view-tracker">
+      <div class="date-nav">
+        <button class="nav-btn" onclick="changeDay(-1)">&#8249;</button>
+        <div class="date-center">
+          <div class="date-main" id="date-main"></div>
+          <div class="date-sub" id="date-sub"></div>
+        </div>
+        <button class="nav-btn" onclick="changeDay(1)">&#8250;</button>
+      </div>
+      <div class="routine-list" id="routine-list"></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="view" id="view-dashboard">
+      <div class="period-bar">
+        <button class="period-tab active" onclick="switchPeriod('week')">This week</button>
+        <button class="period-tab" onclick="switchPeriod('month')">Month to date</button>
+        <button class="period-tab" onclick="switchPeriod('year')">Year to date</button>
+      </div>
+
+      <div class="period-view active dash-section" id="period-week">
+        <div class="spacer-sm"></div>
+        <div class="section-label">At a glance</div>
+        <div class="summary-grid" id="week-summary"></div>
+        <div class="section-label">Insights</div>
+        <div class="insight-block" id="week-insights"></div>
+        <div class="section-label">Consistency chart</div>
+        <div class="chart-wrap" id="week-chart"></div>
+        <div class="spacer-sm"></div>
+        <div class="section-label">Week overview</div>
+        <div class="week-section">
+          <div class="day-labels" id="week-day-labels"></div>
+          <div class="week-grid" id="week-grid"></div>
+        </div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="period-view dash-section" id="period-month">
+        <div class="spacer-sm"></div>
+        <div class="section-label">At a glance</div>
+        <div class="summary-grid" id="month-summary"></div>
+        <div id="month-context"></div>
+        <div class="section-label">Insights</div>
+        <div class="insight-block" id="month-insights"></div>
+        <div class="section-label">Consistency chart</div>
+        <div class="chart-wrap" id="month-chart"></div>
+        <div class="spacer-sm"></div>
+        <div class="section-label">Month heatmap</div>
+        <div class="day-labels" id="month-day-labels"></div>
+        <div class="month-grid" id="month-grid"></div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="period-view dash-section" id="period-year">
+        <div class="spacer-sm"></div>
+        <div class="section-label">At a glance</div>
+        <div class="summary-grid" id="year-summary"></div>
+        <div id="year-context"></div>
+        <div class="section-label">Insights</div>
+        <div class="insight-block" id="year-insights"></div>
+        <div class="section-label">Consistency chart</div>
+        <div class="chart-wrap" id="year-chart"></div>
+        <div class="spacer"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ROUTINES=[
+  {name:'Priming',       icon:'🌅'},
+  {name:'Self-Growth',   icon:'📚'},
+  {name:'Communication', icon:'🗣️'},
+  {name:'Learn AI',      icon:'🤖'},
+  {name:'Career',        icon:'💼'},
+  {name:'Workout',       icon:'💪'},
+  {name:'Journal',       icon:'✍️'},
+  {name:'Read',          icon:'📖'},
+];
+
+// Correct preload: matches user's typed order exactly
+// Communication = ✗ all week (confirmed)
+// Workout = ✗ Wed + Fri, Learn AI = ✗ Thu
+const PRELOAD={
+  '2026-04-20':['✓','✓','✗','✓','✓','✓','✓','✓'],
+  '2026-04-21':['✓','✓','✗','✓','✓','✓','✓','✓'],
+  '2026-04-22':['✓','✓','✗','✓','✓','✗','✓','✓'],
+  '2026-04-23':['✓','✓','✗','✗','✓','✓','✓','✓'],
+  '2026-04-24':['✓','✓','✗','✓','✓','✗','✓','✓'],
+};
+
+const DAYS_SHORT=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS_LONG=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+let currentDate=new Date();currentDate.setHours(0,0,0,0);
+let activePeriod='week';
+
+function dateKey(d){return d.toISOString().slice(0,10)}
+function loadData(){try{return JSON.parse(localStorage.getItem('rd_data2')||'{}')}catch(e){return{}}}
+function saveData(d){try{localStorage.setItem('rd_data2',JSON.stringify(d))}catch(e){}}
+
+function initData(){
+  let data=loadData();let changed=false;
+  for(const[k,v] of Object.entries(PRELOAD)){if(!data[k]){data[k]=v;changed=true;}}
+  if(changed)saveData(data);
+}
+
+function isToday(d){const t=new Date();t.setHours(0,0,0,0);return d.getTime()===t.getTime()}
+
+// ---- TRACKER ----
+function renderTracker(){
+  const key=dateKey(currentDate);
+  const data=loadData();
+  const statuses=data[key]||ROUTINES.map(()=>'–');
+  const dd=String(currentDate.getDate()).padStart(2,'0');
+  const mm=String(currentDate.getMonth()+1).padStart(2,'0');
+  const yyyy=currentDate.getFullYear();
+  document.getElementById('date-main').innerHTML=
+    DAYS_SHORT[currentDate.getDay()]+', '+dd+'/'+mm+'/'+yyyy+
+    (isToday(currentDate)?'<span class="today-chip">today</span>':'');
+  document.getElementById('date-sub').textContent=MONTHS_LONG[currentDate.getMonth()]+' '+yyyy;
+  const list=document.getElementById('routine-list');
+  list.innerHTML='';
+  ROUTINES.forEach((r,i)=>{
+    const st=statuses[i]||'–';
+    const cls=st==='✓'?'state-done':st==='✗'?'state-skip':'state-na';
+    const row=document.createElement('div');
+    row.className='routine-row '+cls;
+    row.innerHTML=`
+      <div class="r-icon">${r.icon}</div>
+      <div class="r-name">${r.name}</div>
+      <select class="status-select" onchange="onSelect('${key}',${i},this.value)">
+        <option value="✓"${st==='✓'?' selected':''}>✓</option>
+        <option value="✗"${st==='✗'?' selected':''}>✗</option>
+        <option value="–"${st==='–'?' selected':''}>–</option>
+      </select>`;
+    list.appendChild(row);
+  });
+}
+
+function onSelect(key,idx,val){
+  const data=loadData();
+  if(!data[key])data[key]=ROUTINES.map(()=>'–');
+  data[key][idx]=val;saveData(data);renderTracker();
+}
+function changeDay(dir){currentDate.setDate(currentDate.getDate()+dir);renderTracker();}
+
+// ---- DATA HELPERS ----
+function computeStats(keys){
+  const data=loadData();
+  return ROUTINES.map((r,i)=>{
+    let done=0,logged=0;
+    keys.forEach(k=>{
+      if(!data[k])return;
+      const st=data[k][i];
+      if(st==='✓'){done++;logged++;}
+      else if(st==='✗')logged++;
+    });
+    const pct=logged>0?Math.round((done/logged)*100):null;
+    return{...r,done,logged,pct};
+  });
+}
+
+function computeStreaks(){
+  const data=loadData();
+  const allKeys=Object.keys(data).sort().reverse();
+  const todayStr=dateKey(new Date());
+  return ROUTINES.map((_,i)=>{
+    let s=0;
+    for(const k of allKeys){
+      if(k>todayStr)continue;
+      const st=data[k]&&data[k][i];
+      if(st==='✓')s++;
+      else if(st==='✗')break;
+    }
+    return s;
+  });
+}
+
+function totalsDoneSkip(keys){
+  const data=loadData();let done=0,skip=0;
+  keys.forEach(k=>{
+    if(!data[k])return;
+    data[k].forEach(st=>{if(st==='✓')done++;else if(st==='✗')skip++;});
+  });
+  return{done,skip};
+}
+
+function overallPct(stats){
+  const valid=stats.filter(r=>r.pct!==null);
+  return valid.length>0?Math.round(valid.reduce((a,r)=>a+r.pct,0)/valid.length):0;
+}
+
+// ---- INSIGHT COPY VARIANTS ----
+// Each array has multiple templates. Pick by hash of routine name so it's consistent but varied.
+function pickVariant(arr,seed){
+  let h=0;for(let i=0;i<seed.length;i++)h=(h*31+seed.charCodeAt(i))%arr.length;
+  return arr[h];
+}
+
+function lagCopy(name,pct,period){
+  const templates=[
+    `<strong>${name}</strong> needs the most attention ${period} — sitting at ${pct}%.`,
+    `${period==='this week'?'This week':'So far'}, <strong>${name}</strong> is the one to watch. Only ${pct}% logged.`,
+    `<strong>${name}</strong> has the most room to grow ${period} at ${pct}%.`,
+    `${pct}% on <strong>${name}</strong> ${period}. That is the one to nudge.`,
+    `<strong>${name}</strong> is the habit you have logged least ${period} — ${pct}%.`,
+  ];
+  return pickVariant(templates,name+period);
+}
+
+function strongCopy(name,pct,period){
+  const templates=[
+    `<strong>${name}</strong> is your most consistent habit ${period} at ${pct}%.`,
+    `${pct}% on <strong>${name}</strong> — solid work ${period}.`,
+    `<strong>${name}</strong> is holding strong ${period}. ${pct}% and counting.`,
+    `Your best habit ${period} is <strong>${name}</strong> at ${pct}%.`,
+    `<strong>${name}</strong> is one you can rely on. ${pct}% ${period}.`,
+  ];
+  return pickVariant(templates,name+period);
+}
+
+function buildInsights(elId,stats,period,daysLogged){
+  const withData=stats.filter(r=>r.pct!==null);
+  let html='';
+
+  if(daysLogged===0){
+    html=`<div class="insight-card neutral"><div class="i-icon">💡</div><div class="i-txt">Nothing logged yet. Start ticking off your routines and insights will appear here.</div></div>`;
+    document.getElementById(elId).innerHTML=html;return;
+  }
+
+  // Single worst lag
+  const sorted=[...withData].sort((a,b)=>a.pct-b.pct);
+  const worst=sorted[0];
+  if(worst&&worst.pct<80){
+    html+=`<div class="insight-card lag"><div class="i-icon">⚠️</div><div class="i-txt">${lagCopy(worst.name,worst.pct,period)}</div></div>`;
+  }
+
+  // Top strong habit
+  const best=[...withData].sort((a,b)=>b.pct-a.pct)[0];
+  if(best&&best.pct>=80){
+    html+=`<div class="insight-card strong"><div class="i-icon">⭐</div><div class="i-txt">${strongCopy(best.name,best.pct,period)}</div></div>`;
+  }
+
+  // Zoom-out nudge if everything is solid
+  if(!html){
+    html=`<div class="insight-card neutral"><div class="i-icon">🔥</div><div class="i-txt">Everything is tracking above 80% ${period}. Keep the momentum going.</div></div>`;
+  }
+
+  document.getElementById(elId).innerHTML=html;
+}
+
+// ---- HORIZONTAL BAR CHART ----
+function buildChart(elId,stats,streaks){
+  const rows=stats.map((r,i)=>{
+    const pct=r.pct!==null?r.pct:0;
+    const hasData=r.pct!==null;
+    const col=pct>=80?'#6fcf97':pct>=50?'#c9a96e':'#eb7070';
+    const sk=streaks[i];
+    return`
+      <div class="chart-row">
+        <div class="chart-icon">${r.icon}</div>
+        <div class="chart-label">${r.name}</div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="width:${hasData?pct:0}%;background:${col}"></div>
+        </div>
+        <div class="chart-pct" style="color:${hasData?col:'var(--muted)'};">${hasData?pct+'%':'–'}</div>
+        <div class="chart-streak">${sk>=2?'🔥'+sk+'d':''}</div>
+      </div>`;
+  }).join('');
+  document.getElementById(elId).innerHTML=rows;
+}
+
+// ---- SUMMARY GRID ----
+function renderSummaryGrid(elId,done,skip,pct,dLabel,sLabel){
+  document.getElementById(elId).innerHTML=`
+    <div class="s-card"><div class="s-num green">${done}</div><div class="s-lbl">${dLabel}</div></div>
+    <div class="s-card"><div class="s-num red">${skip}</div><div class="s-lbl">${sLabel}</div></div>
+    <div class="s-card"><div class="s-num gold">${pct}%</div><div class="s-lbl">avg consistency</div></div>`;
+}
+
+// ---- WEEK ----
+function renderWeek(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const day=today.getDay();
+  const mon=new Date(today);mon.setDate(today.getDate()-(day===0?6:day-1));
+  const weekDates=Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+  const weekKeys=weekDates.map(d=>dateKey(d));
+  const data=loadData();
+  const stats=computeStats(weekKeys);
+  const streaks=computeStreaks();
+  const{done,skip}=totalsDoneSkip(weekKeys);
+  const pct=overallPct(stats);
+  const daysLogged=weekKeys.filter(k=>data[k]).length;
+
+  renderSummaryGrid('week-summary',done,skip,pct,'done this week','skipped this week');
+  buildInsights('week-insights',stats,'this week',daysLogged);
+  buildChart('week-chart',stats,streaks);
+
+  document.getElementById('week-day-labels').innerHTML=
+    ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="day-lbl">${d}</div>`).join('');
+  document.getElementById('week-grid').innerHTML=weekDates.map(d=>{
+    const k=dateKey(d);const future=d>today;
+    if(future)return`<div class="w-cell empty">–</div>`;
+    const dd=data[k];if(!dd)return`<div class="w-cell empty">–</div>`;
+    const dn=dd.filter(s=>s==='✓').length;
+    const lg=dd.filter(s=>s!=='–').length;
+    const p=lg>0?Math.round((dn/lg)*100):0;
+    return`<div class="w-cell ${p>=80?'done':p>=50?'mid':'low'}">${p}%</div>`;
+  }).join('');
+}
+
+// ---- MONTH ----
+function renderMonth(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const yr=today.getFullYear(),mo=today.getMonth();
+  const firstDay=new Date(yr,mo,1);
+  const lastDay=new Date(yr,mo+1,0);
+  const data=loadData();
+  const allKeys=Object.keys(data);
+  const monthKeys=allKeys.filter(k=>{const d=new Date(k);return d.getFullYear()===yr&&d.getMonth()===mo&&d<=today;});
+  const stats=computeStats(monthKeys);
+  const streaks=computeStreaks();
+  const{done,skip}=totalsDoneSkip(monthKeys);
+  const pct=overallPct(stats);
+  const daysLogged=monthKeys.length;
+  const dayOfMonth=today.getDate();
+
+  renderSummaryGrid('month-summary',done,skip,pct,'done this month','skipped this month');
+  document.getElementById('month-context').innerHTML=`
+    <div class="context-note">
+      <strong>${daysLogged} of ${dayOfMonth} days</strong> logged in ${MONTHS_LONG[mo]}.
+      ${pct>=70?'Tracking well overall.':pct>=50?'Solid progress. A few areas to focus on.':'Every day you log builds the picture.'}
+    </div>`;
+  buildInsights('month-insights',stats,'this month',daysLogged);
+  buildChart('month-chart',stats,streaks);
+
+  document.getElementById('month-day-labels').innerHTML=
+    ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="day-lbl">${d}</div>`).join('');
+  const startDow=firstDay.getDay()===0?6:firstDay.getDay()-1;
+  const totalRows=Math.ceil((startDow+lastDay.getDate())/7);
+  let cells='';
+  for(let i=0;i<totalRows*7;i++){
+    const dayNum=i-startDow+1;
+    if(dayNum<1||dayNum>lastDay.getDate()){cells+=`<div class="m-cell empty"></div>`;continue;}
+    const cellDate=new Date(yr,mo,dayNum);cellDate.setHours(0,0,0,0);
+    const k=dateKey(cellDate);
+    if(cellDate>today){cells+=`<div class="m-cell future"><div class="m-date">${dayNum}</div></div>`;continue;}
+    const dd=data[k];
+    if(!dd){cells+=`<div class="m-cell unlogged"><div class="m-date">${dayNum}</div></div>`;continue;}
+    const dn=dd.filter(s=>s==='✓').length;
+    const lg=dd.filter(s=>s!=='–').length;
+    const p=lg>0?Math.round((dn/lg)*100):0;
+    cells+=`<div class="m-cell ${p>=80?'done':p>=50?'mid':'low'}"><div class="m-date">${dayNum}</div><div class="m-score">${p}%</div></div>`;
+  }
+  document.getElementById('month-grid').innerHTML=cells;
+}
+
+// ---- YEAR ----
+function renderYear(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const yr=today.getFullYear();
+  const data=loadData();
+  const allKeys=Object.keys(data);
+  const yearKeys=allKeys.filter(k=>{const d=new Date(k);return d.getFullYear()===yr&&d<=today;});
+  const stats=computeStats(yearKeys);
+  const streaks=computeStreaks();
+  const{done,skip}=totalsDoneSkip(yearKeys);
+  const pct=overallPct(stats);
+  const daysLogged=yearKeys.length;
+  const startOfYear=new Date(yr,0,1);
+  const dayOfYear=Math.floor((today-startOfYear)/(1000*60*60*24))+1;
+
+  renderSummaryGrid('year-summary',done,skip,pct,'done in '+yr,'skipped in '+yr);
+  document.getElementById('year-context').innerHTML=`
+    <div class="context-note">
+      <strong>${daysLogged} of ${dayOfYear} days</strong> logged so far in ${yr}.
+      ${pct>=70?'Your habits are holding up across the year.':pct>=50?'More than halfway consistent. Room to build.':'Just getting started. Every logged day counts.'}
+    </div>`;
+  buildInsights('year-insights',stats,'this year',daysLogged);
+  buildChart('year-chart',stats,streaks);
+}
+
+// ---- NAV ----
+function switchMain(tab){
+  document.querySelectorAll('.tabs .tab').forEach((t,i)=>t.classList.toggle('active',(tab==='tracker'&&i===0)||(tab==='dashboard'&&i===1)));
+  document.getElementById('view-tracker').classList.toggle('active',tab==='tracker');
+  document.getElementById('view-dashboard').classList.toggle('active',tab==='dashboard');
+  if(tab==='tracker')renderTracker();
+  else renderDashboard();
+}
+
+function switchPeriod(period){
+  activePeriod=period;
+  document.querySelectorAll('.period-tab').forEach((t,i)=>t.classList.toggle('active',['week','month','year'][i]===period));
+  document.querySelectorAll('.period-view').forEach((v,i)=>v.classList.toggle('active',['week','month','year'][i]===period));
+  renderDashboard();
+}
+
+function renderDashboard(){
+  if(activePeriod==='week')renderWeek();
+  else if(activePeriod==='month')renderMonth();
+  else renderYear();
+}
+
+initData();
+renderTracker();
+</script>
+</body>
+</html>
