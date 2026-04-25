@@ -8,6 +8,39 @@
 <meta name="apple-mobile-web-app-title" content="Daily Routines">
 <meta name="theme-color" content="#0f0f0f">
 <title>Daily Routines</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExNSIgZmlsbD0iIzBmMGYwZiIvPgogIDxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjQzMiIgaGVpZ2h0PSI0MzIiIHJ4PSI5MCIgZmlsbD0iIzFjMWMxYyIvPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTgwIiBmaWxsPSIjYzlhOTZlIiBvcGFjaXR5PSIwLjE1Ii8+CiAgPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIxNTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M5YTk2ZSIgc3Ryb2tlLXdpZHRoPSIxMiIgb3BhY2l0eT0iMC42Ii8+CiAgPHBvbHlsaW5lIHBvaW50cz0iMTYwLDI2MCAyMjUsMzMwIDM1NSwxODUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZmY2Y5NyIgc3Ryb2tlLXdpZHRoPSI0NCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPg==">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExNSIgZmlsbD0iIzBmMGYwZiIvPgogIDxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjQzMiIgaGVpZ2h0PSI0MzIiIHJ4PSI5MCIgZmlsbD0iIzFjMWMxYyIvPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTgwIiBmaWxsPSIjYzlhOTZlIiBvcGFjaXR5PSIwLjE1Ii8+CiAgPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIxNTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M5YTk2ZSIgc3Ryb2tlLXdpZHRoPSIxMiIgb3BhY2l0eT0iMC42Ii8+CiAgPHBvbHlsaW5lIHBvaW50cz0iMTYwLDI2MCAyMjUsMzMwIDM1NSwxODUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZmY2Y5NyIgc3Ryb2tlLXdpZHRoPSI0NCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPg==">
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    const sw=`self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request))})`;
+    const blob=new Blob([sw],{type:'application/javascript'});
+    const url=URL.createObjectURL(blob);
+    navigator.serviceWorker.register(url);
+  });
+}
+window.addEventListener('load',()=>{
+  const manifest={
+    name:'Daily Routines',
+    short_name:'Routines',
+    start_url:'.',
+    display:'standalone',
+    background_color:'#0f0f0f',
+    theme_color:'#0f0f0f',
+    icons:[{
+      src:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExNSIgZmlsbD0iIzBmMGYwZiIvPgogIDxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjQzMiIgaGVpZ2h0PSI0MzIiIHJ4PSI5MCIgZmlsbD0iIzFjMWMxYyIvPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTgwIiBmaWxsPSIjYzlhOTZlIiBvcGFjaXR5PSIwLjE1Ii8+CiAgPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIxNTUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2M5YTk2ZSIgc3Ryb2tlLXdpZHRoPSIxMiIgb3BhY2l0eT0iMC42Ii8+CiAgPHBvbHlsaW5lIHBvaW50cz0iMTYwLDI2MCAyMjUsMzMwIDM1NSwxODUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZmY2Y5NyIgc3Ryb2tlLXdpZHRoPSI0NCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPg==',
+      sizes:'512x512',
+      type:'image/svg+xml',
+      purpose:'any maskable'
+    }]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('link');
+  link.rel='manifest';link.href=url;
+  document.head.appendChild(link);
+});
+</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
