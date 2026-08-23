@@ -1,6 +1,6 @@
 {
   "name": "Daily Routines",
-  "short_name": "Routines",
+  "short_name": "Daily Routines",
   "description": "A private daily routine tracker that stays on your device.",
   "start_url": ".",
   "scope": ".",
